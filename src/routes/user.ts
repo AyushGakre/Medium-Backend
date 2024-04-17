@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
+import {signinInput,signupInput} from "@ayushgakre/comman"
 
 export const userRoute = new Hono<{
    Bindings: {
@@ -12,6 +13,12 @@ export const userRoute = new Hono<{
 
 userRoute.post('/signup', async(c) => {
     const body = await c.req.json();
+    const success = signupInput.safeParse(body);
+    if(!success){
+      return c.json({
+        message: "Invalid acc to zod"
+      })
+    }
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate())
@@ -39,6 +46,12 @@ userRoute.post('/signup', async(c) => {
   
 userRoute.post('/signin', async(c) =>{
     const body = await c.req.json();
+    const success = signinInput.safeParse(body);
+    if(!success){
+      return c.json({
+        message: "Invalid acc to zod"
+      })
+    }
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate())

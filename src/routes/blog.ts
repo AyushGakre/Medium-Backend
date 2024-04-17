@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import { sign, verify } from "hono/jwt";
+import {createPostinput,updatepostInput} from "@ayushgakre/comman"
 
 export const blogRoute = new Hono<{
    Bindings: {
@@ -30,6 +31,12 @@ blogRoute.use('/*', async(c,next)=>{
 // post blog
 blogRoute.post('/', async(c) => {
     const body = await c.req.json();
+    const success = createPostinput.safeParse(body);
+    if(!success){
+      return c.json({
+        message: "Invalid acc to zod"
+      })
+    }
     const authorId = c.get("userId")
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
@@ -41,6 +48,12 @@ blogRoute.post('/', async(c) => {
             authorId: parseInt(authorId)
         }
   })
+  if(!blog){
+    c.status(401)
+    return c.json({
+        message:"not logged in"
+    })
+  }
   return c.json({
     id: blog.id
   })
@@ -49,6 +62,12 @@ blogRoute.post('/', async(c) => {
 // update the blog by passing id
 blogRoute.put('/', async(c) =>{
     const body = await c.req.json();
+    const success = updatepostInput.safeParse(body);
+    if(!success){
+      return c.json({
+        message: "Invalid acc to zod"
+      })
+    }
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate())
